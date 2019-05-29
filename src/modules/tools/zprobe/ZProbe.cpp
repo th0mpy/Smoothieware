@@ -220,7 +220,7 @@ bool ZProbe::run_probe(float& mm, float feedrate, float max_dist, bool reverse)
 		
 		//move up 30 mm
 		int z_start_pos30 = THEROBOT->actuators[2]->get_current_position() + 30;
-		coordinated_move(NAN, NAN, save_z_pos2, fr, false);
+		coordinated_move(NAN, NAN, z_start_pos30, fr, false);
 		
 		// now see how far we moved, get delta in z we moved based on which repetition
 		if (b == 0)
@@ -233,7 +233,7 @@ bool ZProbe::run_probe(float& mm, float feedrate, float max_dist, bool reverse)
 		}
 		
 		measurements = measurements / 4;
-		gcode->stream->printf(measurements);
+		//gcode->stream->printf(measurements);
 		
 		//mm= z_start_pos - THEROBOT->actuators[2]->get_current_position();
 		
