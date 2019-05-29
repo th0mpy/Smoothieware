@@ -197,7 +197,7 @@ bool ZProbe::run_probe(float& mm, float feedrate, float max_dist, bool reverse)
 
 	//start loop
 	float measurements = 0;
-	for (int b, b <= 3, ++b)
+	for (int b; b <= 3; ++b)
 	{
 		// move Z down
 		bool dir= (!reverse_z != reverse); // xor
@@ -223,7 +223,7 @@ bool ZProbe::run_probe(float& mm, float feedrate, float max_dist, bool reverse)
 		coordinated_move(NAN, NAN, save_z_pos2, fr, false);
 		
 		// now see how far we moved, get delta in z we moved based on which repetition
-		if (b = 0)
+		if (b == 0)
 		{
 			measurements = z_start_pos - THEROBOT->actuators[2]->get_current_position();
 		}
