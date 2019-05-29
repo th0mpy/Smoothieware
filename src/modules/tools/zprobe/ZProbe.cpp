@@ -195,19 +195,53 @@ bool ZProbe::run_probe(float& mm, float feedrate, float max_dist, bool reverse)
     // save current actuator position so we can report how far we moved
     float z_start_pos= THEROBOT->actuators[Z_AXIS]->get_current_position();
 
-    // move Z down
-    bool dir= (!reverse_z != reverse); // xor
-    float delta[3]= {0,0,0};
-    delta[Z_AXIS]= dir ? -maxz : maxz;
-    THEROBOT->delta_move(delta, feedrate, 3);
+	//start loop
+	float measurements = 0;
+	for (int b, b <= 3, ++b)
+	{
+		// move Z down
+		bool dir= (!reverse_z != reverse); // xor
+		float delta[3]= {0,0,0};
+		delta[Z_AXIS]= dir ? -maxz : maxz;
+		THEROBOT->delta_move(delta, feedrate, 3);
 
-    // wait until finished
-    THECONVEYOR->wait_for_idle();
-    if(THEKERNEL->is_halted()) return false;
+		// wait until finished
+		THECONVEYOR->wait_for_idle();
+		if(THEKERNEL->is_halted()) return false;
 
-    // now see how far we moved, get delta in z we moved
-    // NOTE this works for deltas as well as all three actuators move the same amount in Z
-    mm= z_start_pos - THEROBOT->actuators[2]->get_current_position();
+		//move up 30mm and repeat
+		float fr;
+		if(this->return_feedrate != 0) { // use return_feedrate if set
+			fr = this->return_feedrate;
+		} else {
+			fr = this->slow_feedrate*2; // nominally twice slow feedrate
+			if(fr > this->fast_feedrate) fr = this->fast_feedrate; // unless that is greater than fast feedrate
+		}
+		
+		//move up 30 mm
+		int z_start_pos30 = THEROBOT->actuators[2]->get_current_position() + 30;
+		coordinated_move(NAN, NAN, save_z_pos2, fr, false);
+		
+		// now see how far we moved, get delta in z we moved based on which repetition
+		if (b = 0)
+		{
+			measurements = z_start_pos - THEROBOT->actuators[2]->get_current_position();
+		}
+		else
+		{
+			measurements += z_start_pos30 - THEROBOT->actuators[2]->get_current_position();
+		}
+		
+		measurements = measurements / 4;
+		gcode->stream->printf(measurements);
+		
+		//mm= z_start_pos - THEROBOT->actuators[2]->get_current_position();
+		
+	}
+
+
+    
+	mm = measurements;
 
     // set the last probe position to the actuator units moved during this home
     THEROBOT->set_last_probe_position(std::make_tuple(0, 0, mm, probe_detected?1:0));
